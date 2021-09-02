@@ -3,13 +3,15 @@ package com.twh.ellog;
 import com.twh.ellog.annotation.ELLog;
 import com.twh.ellog.annotation.ElLogParam;
 import javassist.*;
-import javassist.expr.ExprEditor;
-import javassist.expr.Handler;
-import javassist.expr.MethodCall;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.LocalVariableAttribute;
+import javassist.bytecode.MethodInfo;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author xixi
@@ -65,22 +67,46 @@ public class ELLogTransformer implements ClassFileTransformer {
   }
 
   private void decorate(CtMethod method, ELLog elLog) throws CannotCompileException {
+    String[] parameterVariableNames = getMethodParamNames(method);
     StringBuilder srcBuilder = new StringBuilder();
+    List<MethodContextInfo.ElLogParamInfo> paramInfoList = new ArrayList<>();
     // 插入代码块，限定变量作用域
     srcBuilder.append("{");
     if (elLog.params() != null && elLog.params().length > 0) {
-      srcBuilder.append("java.util.List elLogParams = new java.util.ArrayList();");
-      srcBuilder.append("com.twh.ellog.process.ElLogParam elLogParam;");
       for (ElLogParam param : elLog.params()) {
-        srcBuilder.append("elLogParam = new com.twh.ellog.process.ElLogParam();");
-        srcBuilder.append(String.format("elLogParam.setKey(\"%s\");", param.key()));
-        srcBuilder.append(String.format("elLogParam.setValue(\"%s\");", param.value()));
-        srcBuilder.append("elLogParams.add(elLogParam);");
+        MethodContextInfo.ElLogParamInfo paramInfo = new MethodContextInfo.ElLogParamInfo(param.key(), param.value());
+        paramInfoList.add(paramInfo);
       }
     }
-    srcBuilder.append(String.format("com.twh.ellog.process.ElLog.entry(\"%s\", elLogParams, $args);", elLog.logType()));
+    MethodContextInfo.ElLogInfo elLogInfo = new MethodContextInfo.ElLogInfo(elLog.logType(), paramInfoList);
+    MethodContextInfo methodContextInfo = new MethodContextInfo(method.getName(), parameterVariableNames, elLogInfo);
+    String id = Metadata.newMetadataGetKey(methodContextInfo);
+    srcBuilder.append(String.format("com.twh.ellog.process.MethodMonitor.entry(\"%s\", $args);", id));
     srcBuilder.append("}");
     method.insertBefore(srcBuilder.toString());
-    method.insertAfter("com.twh.ellog.process.ElLog.clean();", true);
+    method.insertAfter("com.twh.ellog.process.MethodMonitor.clean();", true);
+  }
+
+  @SuppressWarnings("squid:S112")
+  private String[] getMethodParamNames(CtMethod ctMethod) {
+    CtClass cc = ctMethod.getDeclaringClass();
+    MethodInfo methodInfo = ctMethod.getMethodInfo();
+    CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
+    LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
+    if (attr == null) {
+      throw new RuntimeException(cc.getName());
+    }
+
+    String[] paramNames;
+    try {
+      paramNames = new String[ctMethod.getParameterTypes().length];
+    } catch (NotFoundException e) {
+      throw new RuntimeException(e);
+    }
+    int pos = Modifier.isStatic(ctMethod.getModifiers()) ? 0 : 1;
+    for (int i = 0; i < paramNames.length; i++) {
+      paramNames[i] = attr.variableName(i + pos);
+    }
+    return paramNames;
   }
 }

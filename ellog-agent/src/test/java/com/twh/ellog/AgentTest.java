@@ -2,6 +2,7 @@ package com.twh.ellog;
 
 import com.twh.ellog.annotation.ELLog;
 import com.twh.ellog.annotation.ElLogParam;
+import com.twh.ellog.process.MethodMonitor;
 
 /**
  * @author wenhai.tan
@@ -14,7 +15,7 @@ public class AgentTest {
 
   @ELLog(logType = "'test'", params = {
       @ElLogParam(key = "'aa'", value = "'Hello World'.concat('!')"),
-      @ElLogParam(key = "'cc'", value = "#{ T(java.lang.Math).random() * 100.0 }"),
+      @ElLogParam(key = "'cc'", value = "#a"),
   })
   public void test(int a, int b) {
     System.out.println("aa");

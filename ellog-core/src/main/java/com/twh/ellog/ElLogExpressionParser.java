@@ -5,5 +5,5 @@ package com.twh.ellog;
  * @date 2021/8/20
  */
 public interface ElLogExpressionParser {
-  ElLogExpression parseExpression(Object... args);
+  String getValue(String expressionString);
 }
