@@ -52,7 +52,6 @@ public class ELLogTransformer implements ClassFileTransformer {
       }
 
       if (modify) {
-        clazz.writeFile();
         byte[] byteCode = clazz.toBytecode();
         //detach的意思是将内存中曾经被javassist加载过的Date对象移除，如果下次有需要在内存中找不到会重新走javassist加载
         clazz.detach();
