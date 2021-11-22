@@ -1,8 +1,7 @@
 dependencies {
   implementation(project(":ellog-core"))
-  implementation("org.javassist:javassist:3.28.0-GA")
+  implementation("org.javassist:javassist:${Versions.JAVASSIST_VERSION}")
 
-  testImplementation(project(":ellog-spring"))
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
