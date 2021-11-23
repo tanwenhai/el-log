@@ -6,5 +6,5 @@
 * ellog-core 核心代码实现
 * ellog-spring spring el实现
 * ellog-processor 编译时处理注解(非agent增强方式)
-* ellog-aop aop动态代理
+* ellog-aspect-aop aspectj aop编译时织入
 * ellog-samples 样例

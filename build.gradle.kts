@@ -9,6 +9,7 @@ buildscript {
 }
 
 plugins {
+  java
   `java-library`
   id("nebula.dependency-recommender") version "10.0.1"
   idea
@@ -43,7 +44,7 @@ allprojects {
         "recommendations" to mapOf(
           "org.springframework:spring-expression" to Versions.SPRING_VERSION,
           "org.junit.jupiter:junit-jupiter-api" to Versions.JUNIT_JUPITER,
-          "org.junit.jupiter:junit-jupiter-engine" to Versions.JUNIT_JUPITER,
+          "org.junit.jupiter:junit-jupiter-engine" to Versions.JUNIT_JUPITER
         )
       )
     )
